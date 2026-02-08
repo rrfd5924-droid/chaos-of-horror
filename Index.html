@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Chaos of Horror — by D Rrf q3v yt</title>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    overflow: hidden;
+    touch-action: none;
+    font-family: Arial, sans-serif;
+  }
+  canvas {
+    display: block;
+    background: #444;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let mode = "title";
+let startTime = Date.now();
+
+let player = { x: 100, y: 200, r: 12 };
+let monster = { x: canvas.width-100, y: canvas.height/2 };
+
+let touchX = null;
+let touchY = null;
+
+let pacStart = 0;
+let curse = 0;
+
+canvas.addEventListener("touchstart", e=>{
+  const t = e.touches[0];
+  touchX = t.clientX;
+  touchY = t.clientY;
+});
+canvas.addEventListener("touchmove", e=>{
+  const t = e.touches[0];
+  touchX = t.clientX;
+  touchY = t.clientY;
+});
+canvas.addEventListener("touchend", ()=>{
+  touchX = null;
+  touchY = null;
+});
+
+function dist(a,b){
+  return Math.hypot(a.x-b.x,a.y-b.y);
+}
+
+function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(mode==="title"){
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="red";
+    ctx.font="bold 36px Arial";
+    ctx.textAlign="center";
+    ctx.fillText("THE CHAOS OF HORROR",canvas.width/2,canvas.height/2-20);
+    ctx.fillStyle="white";
+    ctx.font="18px Arial";
+    ctx.fillText("by D Rrf q3v yt",canvas.width/2,canvas.height/2+20);
+
+    if(Date.now()-startTime>2500){
+      mode="game";
+    }
+    requestAnimationFrame(loop);
+    return;
+  }
+
+  if(mode==="pacman"){
+    ctx.fillStyle=`rgb(${200-curse*20},${200-curse*20},80)`;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.strokeStyle="blue";
+    for(let x=0;x<canvas.width;x+=40){
+      for(let y=0;y<canvas.height;y+=40){
+        ctx.strokeRect(x,y,40,40);
+      }
+    }
+
+    ctx.fillStyle="yellow";
+    ctx.beginPath();
+    ctx.arc(player.x,player.y,12,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="red";
+    ctx.fillRect(monster.x,monster.y,20,20);
+
+    if(Date.now()-pacStart>2000){
+      curse++;
+      pacStart=Date.now();
+    }
+
+    ctx.fillStyle="red";
+    ctx.font="24px Arial";
+    if(curse>2) ctx.fillText("THIS IS NOT PAC-MAN",canvas.width/2,50);
+    if(curse>3) ctx.fillText("RUN",Math.random()*canvas.width,Math.random()*canvas.height);
+
+    if(Date.now()-pacStart>8000){
+      mode="game";
+    }
+
+    requestAnimationFrame(loop);
+    return;
+  }
+
+  if(dist(player,monster)<25){
+    mode="dead";
+  }
+
+  if(mode==="dead"){
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="red";
+    ctx.font="40px Arial";
+    ctx.textAlign="center";
+    ctx.fillText("YOU DIED",canvas.width/2,canvas.height/2);
+
+    for(let i=0;i<40;i++){
+      ctx.fillText("💀",Math.random()*canvas.width,Math.random()*canvas.height);
+    }
+
+    if(touchX!==null){
+      mode="game";
+      player.x=100;
+      player.y=200;
+    }
+
+    requestAnimationFrame(loop);
+    return;
+  }
+
+  if(touchX!==null){
+    player.x += (touchX-player.x)*0.05;
+    player.y += (touchY-player.y)*0.05;
+  }
+
+  monster.x += (player.x-monster.x)*0.01;
+  monster.y += (player.y-monster.y)*0.01;
+
+  ctx.fillStyle="white";
+  ctx.beginPath();
+  ctx.arc(player.x,player.y,12,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle="red";
+  ctx.fillRect(monster.x,monster.y,30,30);
+
+  if(Math.random()<0.05){
+    ctx.fillStyle="rgba(255,0,0,0.2)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+
+  if(Math.random()<0.001){
+    mode="pacman";
+    pacStart=Date.now();
+    curse=0;
+  }
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
